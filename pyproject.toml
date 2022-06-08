@@ -1,0 +1,27 @@
+[project]
+name = "frama-c-ninja"
+version = "0.0.1"
+description = "Creates a ninja build system description of how to invoke Frama-C."
+authors = [
+    {name = "Stephen Gaito", email = "stephen@perceptisys.co.uk"},
+]
+dependencies = [
+    "jinja2~=3.0",
+    "pyyaml~=5.4",
+]
+requires-python = ">=3.9"
+dynamic = ["classifiers"]
+license = {text = "Apache-2.0"}
+
+[project.urls]
+homepage = "https://github.com/diSimplex/frama-c-ninja"
+
+[project.scripts]
+fcn = "fcn:cli"
+
+[build-system]
+requires = ["pdm-pep517"]
+build-backend = "pdm.pep517.api"
+
+[tool]
+[tool.pdm]
