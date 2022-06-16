@@ -1,12 +1,11 @@
 [project]
-name = "frama-c-ninja"
+name = "frama-c-runner"
 version = "0.0.1"
-description = "Creates a ninja build system description of how to invoke Frama-C."
+description = "Uses a JSON Compilation Database to automatically invoke Frama-C."
 authors = [
     {name = "Stephen Gaito", email = "stephen@perceptisys.co.uk"},
 ]
 dependencies = [
-    "jinja2~=3.0",
     "pyyaml~=5.4",
 ]
 requires-python = ">=3.9"
@@ -14,10 +13,10 @@ dynamic = ["classifiers"]
 license = {text = "Apache-2.0"}
 
 [project.urls]
-homepage = "https://github.com/diSimplex/frama-c-ninja"
+homepage = "https://github.com/diSimplex/frama-c-runner"
 
 [project.scripts]
-fcn = "fcn:cli"
+fcr = "fcr:cli"
 
 [build-system]
 requires = ["pdm-pep517"]

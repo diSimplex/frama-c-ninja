@@ -1,7 +1,6 @@
-# Frama-C Ninja build
+# Frama-C Runner
 
-This project, using an existing [JSON Compilation
+This project, uses an existing [JSON Compilation
 Database](https://clang.llvm.org/docs/JSONCompilationDatabase.html) file,
-creates a [Ninja build system](https://ninja-build.org/) description of
-how to invoke Frama-C for various tasks.
+to (semi)automatically invoke Frama-C for various tasks.
 
