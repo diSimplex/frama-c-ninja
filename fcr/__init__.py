@@ -20,9 +20,12 @@ def cli() :
   if '-h' in cliArguments or '--help' in cliArguments :
     print("fcr [-h|--help] [-gui] [-no-config] [frama-c options]")
     print("")
-    print("  -h, --help  print this help message")
-    print("  -gui        run the frama-c-gui instead of the frama-c")
-    print("  -no-config  do not load any local .fcrConfig files")
+    print("  -h, --help         print this help message")
+    print("  -gui               run the frama-c-gui instead of the frama-c")
+    print("  -fcr <configName>  load the specified Frama-C-runner configuration")
+    print("                     file (no configuration is loaded if no file is")
+    print("                     found corresponding to `configName`)")
+    print("                     (default `configName`: 'default')")
     print("")
     print("  any valid frama-c or frama-c-gui options ")
     print("")
@@ -52,9 +55,6 @@ def cli() :
   for aCompCmd in jCompileCommands :
     srcDict[aCompCmd['file']] = True
     aCmd = shlex.split(aCompCmd['command'])
-    for anArgument in aCmd :
-      if anArgument.startswith('-I') :
-        includesDict[anArgument.strip()] = True
 
   if not srcDict :
     print("No src files found")
@@ -64,37 +64,48 @@ def cli() :
   ################################################################
   # now load any local frama-c arguments
 
-  if '-no-config' in cliArguments :
-    fcArguments = []
-    cliArguments.remove('-no-config')
-  else :
-    fcrParts = list(Path.cwd().parts)
-    rootPart = fcrParts.pop(0)
-    fcrParts[0] = rootPart + fcrParts[0]
-    fcrConfigPath = None
-    while fcrParts :
-      aConfigPath = Path(os.path.join(*fcrParts, '.fcrConfig'))
-      if aConfigPath.exists() :
-        fcrConfigPath = aConfigPath
-        break
-      fcrParts.pop()
+  # compute the fcrConfig file name
+  fcrConfigName = 'default'
+  if cliArguments.count('-fcr') :
+    fcrConfigIndex = cliArguments.index('-fcr')
+    cliArguments.remove('-fcr')
+    fcrConfigName = cliArguments.pop(fcrConfigIndex)
 
-    fcArguments = []
-    if fcrConfigPath :
-      with open(fcrConfigPath) as fcrConfigFile :
-        fcrConfigYaml = yaml.safe_load(fcrConfigFile.read())
-      if fcrConfigYaml :
-        fcArguments = fcrConfigYaml
-    #print(yaml.dump(fcArguments))
+  fcrParts = list(Path.cwd().parts)
+  rootPart = fcrParts.pop(0)
+  fcrParts[0] = rootPart + fcrParts[0]
+  fcrConfigPath = None
+  while fcrParts :
+    aConfigPath = Path(os.path.join(*fcrParts, '.fcrConfig', fcrConfigName))
+    if aConfigPath.exists() :
+      fcrConfigPath = aConfigPath
+      break
+    fcrParts.pop()
+
+  fcrConfig = {}
+  if fcrConfigPath :
+    with open(fcrConfigPath) as fcrConfigFile :
+      fcrConfigYaml = yaml.safe_load(fcrConfigFile.read())
+    if fcrConfigYaml :
+      fcrConfig = fcrConfigYaml
+
+  # now incorporate this configuration into our variables
+  if 'srcs' in fcrConfig :
+    for aSrc in fcrConfig['srcs'] :
+      srcDict[aSrc] = True
+  fcArguments = []
+  if 'arguments' in fcrConfig :
+    fcArguments = fcrConfig['arguments']
+  if 'environment' in fcrConfig :
+    for aKey, aVal in fcrConfig['environment'].items() :
+      os.putenv(aKey, aVal)
 
   ################################################################
   # now build the frama-c command
 
-  if includesDict :
-    incStr = " ".join(includesDict.keys())
-    fcCmd.append(f"-cpp-extra-args=\"{incStr}\"")
+  fcCmd.append("-json-compilation-database=./compile_commands.json")
   for anArg in fcArguments :
-    fcCmd.append(anArg)
+    fcCmd.append(str(anArg))
   for anArg in cliArguments :
     fcCmd.append(anArg)
   for aSrcFile in srcDict.keys() :
