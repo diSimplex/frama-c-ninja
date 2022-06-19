@@ -36,6 +36,12 @@ def cli() :
     fcCmd = ['frama-c-gui']
     cliArguments.remove('-gui')
 
+  thenArguments = []
+  if '-then' in cliArguments :
+    firstThen = cliArguments.index('-then')
+    thenArguments = cliArguments[firstThen:len(cliArguments)]
+    cliArguments = cliArguments[0:firstThen]
+
   ################################################################
   # now extract the src files and -I include arguments from the
   # compile_commands.json file
@@ -110,6 +116,8 @@ def cli() :
     fcCmd.append(anArg)
   for aSrcFile in srcDict.keys() :
     fcCmd.append(aSrcFile)
+  for anArg in thenArguments :
+    fcCmd.append(anArg)
 
   fcCmd = " ".join(fcCmd)
   print("")
